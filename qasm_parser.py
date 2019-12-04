@@ -5,11 +5,13 @@ def syntax():
     (SIN, COS, TAN, EXP, LN, SQRT, PI,
      U, CX,
      MEASURE, RESET, BARRIER, GATE, QREG, CREG, OPAQUE, IF,
+     INCLUDE,
      OPENQASM) = keyword_list = map(pp.CaselessKeyword,
                                     '''
                                     SIN, COS, TAN, EXP, LN, SQRT, PI,
                                     U, CX,
                                     MEASURE, RESET, BARRIER, GATE, QREG, CREG, OPAQUE, IF,
+                                    INCLUDE,
                                     OPENQASM
                                     '''.replace(",","").split())
     keyword = pp.MatchFirst(keyword_list)
@@ -18,6 +20,7 @@ def syntax():
     ident = ~keyword + pp.Regex(r"[a-z][A-Za-z0-9_]*").setParseAction(lambda t: {"ident" : str(t[0])})
     nninteger = pp.Regex(r"[1-9]+\d*|0").setParseAction(lambda t: {"nninteger" : int(t[0])})
     unaryop = (SIN | COS | TAN | EXP | LN | SQRT).setParseAction(lambda t: { "unary" : t[0]})
+    quoted_string = pp.QuotedString('"')
 
     atom = (real | nninteger | PI | ident)
     term = pp.Forward()
@@ -61,6 +64,7 @@ def syntax():
                  | qop
                  | IF + "(" + ident + "==" + nninteger + ")" + qop
                  | BARRIER + anylist + ";"
+                 | (INCLUDE + quoted_string + ";").setParseAction(lambda t: {"include" : t[1]})
     ).setParseAction(lambda t: { "statement" : t })
     
     program = statement + pp.ZeroOrMore(statement)
@@ -115,6 +119,15 @@ if(syn==3) x q[1];
 measure q -> c;
 '''
 ))
+
+print(syntax.parseString('''
+OPENQASM 2.0;
+include "qelib1.inc";
+'''))
+print(syntax.parseString('''
+OPENQASM 2.0;
+include "qel ib1.inc";
+'''))
 
 # print(exp.parseString("pi"))
 # print(exp.parseString("1.0"))
