@@ -1,21 +1,30 @@
 import pyparsing as pp
 
-def Syntax():
-    keywords_str = "SIN, COS, TAN, EXP, LN, SQRT, PI, U, CX, MEASURE, RESET, BARRIER, GATE, QREG, CREG, OPAQUE, IF, OPENQASM"
-    keyword = pp.MatchFirst(map(pp.CaselessKeyword, keywords_str.replace(",","").split()))
+def syntax():
+
+    (SIN, COS, TAN, EXP, LN, SQRT, PI,
+     U, CX,
+     MEASURE, RESET, BARRIER, GATE, QREG, CREG, OPAQUE, IF,
+     OPENQASM) = keyword_list = map(pp.CaselessKeyword,
+                                    '''
+                                    SIN, COS, TAN, EXP, LN, SQRT, PI,
+                                    U, CX,
+                                    MEASURE, RESET, BARRIER, GATE, QREG, CREG, OPAQUE, IF,
+                                    OPENQASM
+                                    '''.replace(",","").split())
+    keyword = pp.MatchFirst(keyword_list)
 
     real = pp.Regex(r"\d+(?:\.\d+)?(?:[eE][+-]?\d+)?") #.setParseAction(lambda t: float(t[0]))
     ident = ~keyword + pp.Regex(r"[a-z][A-Za-z0-9_]*")
     nninteger = pp.Regex(r"[1-9]+\d*|0")
-    pi = pp.Keyword('pi')
-    unaryop = pp.oneOf('sin cos tan exp ln sqrt')
+    unaryop = SIN | COS | TAN | EXP | LN | SQRT
     
-    atom = real | nninteger | pi | ident
+    atom = real | nninteger | PI | ident
     term = pp.Forward()
     factor = pp.Forward()
     exp = term + pp.ZeroOrMore(pp.oneOf("+ - ^") + term)
     term << (factor + pp.ZeroOrMore(pp.oneOf("* /") + factor))
-    factor << (atom | "-" + exp | unaryop + "(" + exp + ")" | "(" + exp + ")")
+    factor << ("-" + exp | unaryop + "(" + exp + ")" | "(" + exp + ")" | atom)
     explist = exp + pp.ZeroOrMore("," + exp)
 
     argument = ident + "[" + nninteger + "]" | ident
@@ -24,42 +33,43 @@ def Syntax():
     anylist = mixedlist | idlist
     
     uop = (
-        "U" + "(" + explist + ")" + argument + ";"
-        | "CX" + argument + "," + argument + ";"
+        U + "(" + explist + ")" + argument + ";"
+        | CX + argument + "," + argument + ";"
         | ident + anylist + ";"
         | ident + "(" + ")" + anylist + ";"
         | ident + "(" + explist + ")" + anylist + ";"
     )
     
     qop = (uop
-           | "measure" + argument + "-" + ">" + argument + ";"
-           | "reset" + argument + ";"
+           | MEASURE + argument + "-" + ">" + argument + ";"
+           | RESET + argument + ";"
     )
-    gop = uop | "barrier" + idlist + ";"
+    gop = uop | BARRIER + idlist + ";"
     goplist = pp.OneOrMore(gop)
-    gatedecl = ("gate" + ident + idlist + "{"
-                | "gate" + ident + "(" + ")" + idlist + "{"
-                | "gate" + ident + "(" + idlist + ")" + idlist + "{"
+    gatedecl = (GATE + ident + idlist + "{"
+                | GATE + ident + "(" + ")" + idlist + "{"
+                | GATE + ident + "(" + idlist + ")" + idlist + "{"
     )
-    decl = "qreg" + ident + "[" + nninteger + "]" + ";" | "creg" + ident + "[" + nninteger + "]" + ";"
+    decl = QREG + ident + "[" + nninteger + "]" + ";" | CREG + ident + "[" + nninteger + "]" + ";"
 
     statement = (decl
                  | gatedecl + goplist + "}"
                  | gatedecl + "}"
-                 | "opaque" + ident + idlist + ";"
-                 | "opaque" + ident + "(" + ")" + idlist + ";"
-                 | "opaque" + ident + "(" + idlist + ")" + idlist + ";"
+                 | OPAQUE + ident + idlist + ";"
+                 | OPAQUE + ident + "(" + ")" + idlist + ";"
+                 | OPAQUE + ident + "(" + idlist + ")" + idlist + ";"
                  | qop
-                 | "if" + "(" + ident + "==" + nninteger + ")" + qop
-                 | "barrier" + anylist + ";"
+                 | IF + "(" + ident + "==" + nninteger + ")" + qop
+                 | BARRIER + anylist + ";"
     )
     
     program = statement + pp.ZeroOrMore(statement)
     mainprogram = "OPENQASM" + real + ";" + program
+    mainprogram.setParseAction(print("FEFE"))
     
     return mainprogram
 
-syntax = Syntax()
+syntax = syntax()
 
 print(syntax.parseString("OPENQASM 1.0; qreg hoge[10];"))
 print(syntax.parseString('''
@@ -106,12 +116,12 @@ measure q -> c;
 '''
 ))
 
-# print(syntax.parseString("pi"))
-# print(syntax.parseString("1.0"))
-# print(syntax.parseString("1"))
-# print(syntax.parseString("-1.0"))
-# print(syntax.parseString("psi"))
-# print(syntax.parseString("sin(10)"))
+# print(exp.parseString("pi"))
+# print(exp.parseString("1.0"))
+# print(exp.parseString("1"))
+# print(exp.parseString("-1.0"))
+# print(exp.parseString("psi"))
+# print(exp.parseString("sin(10)"))
 # print(syntax.parseString("10,10"))
 # print(anylist.parseString("hoge"))
 # print(anylist.parseString("hoge[10]"))
