@@ -44,7 +44,7 @@ def syntax():
     )
     
     qop = (uop
-           | MEASURE + argument + "-" + ">" + argument + ";"
+           | MEASURE + argument + "->" + argument + ";"
            | RESET + argument + ";"
     )
     gop = uop | BARRIER + idlist + ";"
