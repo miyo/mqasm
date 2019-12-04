@@ -13,19 +13,19 @@ def syntax():
                                     OPENQASM
                                     '''.replace(",","").split())
     keyword = pp.MatchFirst(keyword_list)
-
-    real = pp.Regex(r"\d+(?:\.\d+)?(?:[eE][+-]?\d+)?") #.setParseAction(lambda t: float(t[0]))
-    ident = ~keyword + pp.Regex(r"[a-z][A-Za-z0-9_]*")
-    nninteger = pp.Regex(r"[1-9]+\d*|0")
-    unaryop = SIN | COS | TAN | EXP | LN | SQRT
     
-    atom = real | nninteger | PI | ident
+    real = pp.Regex(r"\d+(?:\.\d+)?(?:[eE][+-]?\d+)?").setParseAction(lambda t: {"real" : float(t[0])})
+    ident = ~keyword + pp.Regex(r"[a-z][A-Za-z0-9_]*").setParseAction(lambda t: {"ident" : str(t[0])})
+    nninteger = pp.Regex(r"[1-9]+\d*|0").setParseAction(lambda t: {"nninteger" : int(t[0])})
+    unaryop = (SIN | COS | TAN | EXP | LN | SQRT).setParseAction(lambda t: { "unary" : t[0]})
+
+    atom = (real | nninteger | PI | ident)
     term = pp.Forward()
     factor = pp.Forward()
-    exp = term + pp.ZeroOrMore(pp.oneOf("+ - ^") + term)
+    exp = (term + pp.ZeroOrMore(pp.oneOf("+ - ^") + term))
     term << (factor + pp.ZeroOrMore(pp.oneOf("* /") + factor))
     factor << ("-" + exp | unaryop + "(" + exp + ")" | "(" + exp + ")" | atom)
-    explist = exp + pp.ZeroOrMore("," + exp)
+    explist = (exp + pp.ZeroOrMore("," + exp)).setParseAction()
 
     argument = ident + "[" + nninteger + "]" | ident
     idlist = ident + pp.ZeroOrMore("," + ident)
@@ -61,11 +61,11 @@ def syntax():
                  | qop
                  | IF + "(" + ident + "==" + nninteger + ")" + qop
                  | BARRIER + anylist + ";"
-    )
+    ).setParseAction(lambda t: { "statement" : t })
     
     program = statement + pp.ZeroOrMore(statement)
-    mainprogram = "OPENQASM" + real + ";" + program
-    mainprogram.setParseAction(print("FEFE"))
+    mainprogram = ("OPENQASM" + real + ";" + program).setParseAction(
+        lambda t: {"version": t[1], "program": t[3:]})
     
     return mainprogram
 
