@@ -75,76 +75,77 @@ def syntax():
  
     return mainprogram
 
-syntax = syntax()
-
-print(syntax.parseString("OPENQASM 1.0; qreg hoge[10];"))
-print(syntax.parseString('''
-OPENQASM 1.0;
-qreg hoge[10];
-'''))
-
-print(syntax.parseString('''
-OPENQASM 2.0;
-qreg q[3];
-qreg a[2];
-creg c[3];
-creg syn[2];
-x q[0];
-barrier q;
-syndrome q[0],q[1],q[2],a[0],a[1];
-measure a -> syn;
-if(syn==1) x q[0];
-if(syn==2) x q[2];
-if(syn==3) x q[1];
-measure q -> c;
-'''
-))
-
-print(syntax.parseString('''
-OPENQASM 2.0;
-qreg q[3];
-qreg a[2];
-creg c[3];
-creg syn[2];
-gate syndrome d1,d2,d3,a1,a2
-{
-  cx d1,a1; cx d2,a1;
-  cx d2,a2; cx d3,a2;
-}
-x q[0];
-barrier q;
-syndrome q[0],q[1],q[2],a[0],a[1];
-measure a -> syn;
-if(syn==1) x q[0];
-if(syn==2) x q[2];
-if(syn==3) x q[1];
-measure q -> c;
-'''
-))
-
-print(syntax.parseString('''
-OPENQASM 2.0;
-include "qelib1.inc";
-'''))
-print(syntax.parseString('''
-OPENQASM 2.0;
-// c++-style comment
-include "qel ib1.inc"; // a space in quoted string
-'''))
-
-# print(exp.parseString("pi"))
-# print(exp.parseString("1.0"))
-# print(exp.parseString("1"))
-# print(exp.parseString("-1.0"))
-# print(exp.parseString("psi"))
-# print(exp.parseString("sin(10)"))
-# print(syntax.parseString("10,10"))
-# print(anylist.parseString("hoge"))
-# print(anylist.parseString("hoge[10]"))
-# print(anylist.parseString("hoge,fe"))
-# print(anylist.parseString("hoge,fe[10]"))
-# print(anylist.parseString("hoge[10],fe"))
-# print(anylist.parseString("hoge[10],fe[10]"))
-# print(uop.parseString("U(2,2)hoge[10];"))
-# print(uop.parseString("CX hoge[10], fefe[20];"))
-# print(uop.parseString("fefe hoge,nore;"))
+if __name__ == "__main__":
+    syntax = syntax()
+    
+    print(syntax.parseString("OPENQASM 1.0; qreg hoge[10];"))
+    print(syntax.parseString('''
+    OPENQASM 1.0;
+    qreg hoge[10];
+    '''))
+    
+    print(syntax.parseString('''
+    OPENQASM 2.0;
+    qreg q[3];
+    qreg a[2];
+    creg c[3];
+    creg syn[2];
+    x q[0];
+    barrier q;
+    syndrome q[0],q[1],q[2],a[0],a[1];
+    measure a -> syn;
+    if(syn==1) x q[0];
+    if(syn==2) x q[2];
+    if(syn==3) x q[1];
+    measure q -> c;
+    '''
+    ))
+    
+    print(syntax.parseString('''
+    OPENQASM 2.0;
+    qreg q[3];
+    qreg a[2];
+    creg c[3];
+    creg syn[2];
+    gate syndrome d1,d2,d3,a1,a2
+    {
+    cx d1,a1; cx d2,a1;
+    cx d2,a2; cx d3,a2;
+    }
+    x q[0];
+    barrier q;
+    syndrome q[0],q[1],q[2],a[0],a[1];
+    measure a -> syn;
+    if(syn==1) x q[0];
+    if(syn==2) x q[2];
+    if(syn==3) x q[1];
+    measure q -> c;
+    '''
+    ))
+    
+    print(syntax.parseString('''
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    '''))
+    print(syntax.parseString('''
+    OPENQASM 2.0;
+    // c++-style comment
+    include "qel ib1.inc"; // a space in quoted string
+    '''))
+    
+    # print(exp.parseString("pi"))
+    # print(exp.parseString("1.0"))
+    # print(exp.parseString("1"))
+    # print(exp.parseString("-1.0"))
+    # print(exp.parseString("psi"))
+    # print(exp.parseString("sin(10)"))
+    # print(syntax.parseString("10,10"))
+    # print(anylist.parseString("hoge"))
+    # print(anylist.parseString("hoge[10]"))
+    # print(anylist.parseString("hoge,fe"))
+    # print(anylist.parseString("hoge,fe[10]"))
+    # print(anylist.parseString("hoge[10],fe"))
+    # print(anylist.parseString("hoge[10],fe[10]"))
+    # print(uop.parseString("U(2,2)hoge[10];"))
+    # print(uop.parseString("CX hoge[10], fefe[20];"))
+    # print(uop.parseString("fefe hoge,nore;"))
