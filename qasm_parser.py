@@ -1,7 +1,7 @@
 import pyparsing as pp
 
 def syntax():
-
+    
     (SIN, COS, TAN, EXP, LN, SQRT, PI,
      U, CX,
      MEASURE, RESET, BARRIER, GATE, QREG, CREG, OPAQUE, IF,
@@ -68,9 +68,11 @@ def syntax():
     ).setParseAction(lambda t: { "statement" : t })
     
     program = statement + pp.ZeroOrMore(statement)
-    mainprogram = ("OPENQASM" + real + ";" + program).setParseAction(
+    mainprogram = ("OPENQASM" + real + ";" + program + pp.StringEnd()).setParseAction(
         lambda t: {"version": t[1], "program": t[3:]})
     
+    mainprogram.ignore(pp.cppStyleComment)
+ 
     return mainprogram
 
 syntax = syntax()
@@ -126,7 +128,8 @@ include "qelib1.inc";
 '''))
 print(syntax.parseString('''
 OPENQASM 2.0;
-include "qel ib1.inc";
+// c++-style comment
+include "qel ib1.inc"; // a space in quoted string
 '''))
 
 # print(exp.parseString("pi"))
